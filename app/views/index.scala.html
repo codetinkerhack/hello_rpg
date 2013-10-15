@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+
+@import play.mvc.Http.Context.Implicit._
+
+<html>
+<head>
+    <title>WestlandGangs</title>
+    <link rel='stylesheet' href='@routes.WebJarAssets.at(WebJarAssets.locate("css/bootstrap.min.css"))'>
+    <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.min.css")">
+    <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.min.js"))'></script>
+    <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.flot.js"))'></script>
+    <script type='text/javascript' src='@routes.Assets.at("javascripts/index.min.js")'></script>
+    <script  type='text/javascript' src='@routes.Assets.at("javascripts/utils.js")'></script>
+    <script  type='text/javascript' src='@routes.Assets.at("javascripts/game.js")'></script>
+</head>
+<body>
+<form name="playerDetails" action="@routes.Application.login">
+    <input type="text" name="name"/>
+    <input type="submit"/> 
+</form>
+    
+</body>
+</html>
