@@ -19,6 +19,9 @@ import actors.LoadScene
 import scala.concurrent.Await
 import akka.util.Timeout
 import actors.UserMove
+import actors.Subscribe
+import actors.Scene
+import actors.WorldActor
 
 object ApplicationScala extends Controller {
 
@@ -68,17 +71,19 @@ object ApplicationScala extends Controller {
         
     def getScene = Action {
     	
-        implicit val timeout = Timeout(5000)
-        
-        val userActor = Akka.system.actorSelection("Ev");
-
-        //TODO: Scene name? 
-        val future = userActor ? LoadScene("default")
-        
-        //TODO: Unlikely but timeout Error sent back?
-        val result = Await.result(future, timeout.duration).asInstanceOf[String]
+//        implicit val timeout = Timeout(5000)
+//        
+//        val userActor = Akka.system.actorSelection("Ev")
+//
+//        //TODO: Scene name? 
+//        val future = userActor ? LoadScene("default")
+//        
+//        //TODO: Unlikely but timeout Error sent back?
+//        val result = Await.result(future, timeout.duration).asInstanceOf[String]
+      
+    	
     
-        Ok(result)  
+        Ok(WorldActor.getDefaultScene)  
     }       
         
 

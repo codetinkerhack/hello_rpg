@@ -63,32 +63,7 @@ case class ShutDown()
 class WorldActor extends Actor {
   
   
-   
-  val sceneDefaultTiles : List[List[Int]] = List(
-List(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
-List(1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
-List(1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
-List(1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
-List(1,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
-List(1,1,2,2,2,2,1,1,3,3,3,3,1,1,1,1,1,1,1,1),
-List(1,1,1,2,2,1,1,3,2,3,2,3,3,1,1,1,1,1,1,1),
-List(1,1,1,1,1,1,1,3,2,2,2,2,3,1,1,1,1,1,1,1),
-List(1,1,1,1,1,1,1,1,3,3,3,3,1,1,1,1,1,1,1,1),
-List(1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1),
-List(1,1,1,1,1,1,2,2,2,2,2,2,2,2,1,1,1,1,1,1),
-List(1,1,1,1,1,2,1,2,2,3,4,3,2,1,2,1,1,1,1,1),
-List(1,1,1,1,1,2,1,2,2,3,4,3,2,1,2,1,1,1,1,1),
-List(1,1,1,1,1,2,1,2,2,3,3,3,2,1,2,1,1,1,1,1),
-List(1,1,1,1,1,2,1,2,2,2,2,2,2,1,2,1,1,1,1,1),
-List(1,1,1,1,2,2,1,2,2,2,2,2,2,1,2,2,1,1,1,1),
-List(1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1),
-List(1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1),
-List(1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1),
-List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1,1,1,1,1)
-)
-  
-  val defaultSceneActor = context.actorOf(Props(new SceneActor(sceneDefaultTiles)), "sceneDefault")
-  
+  val defaultSceneActor = context.actorOf(Props(new SceneActor(WorldActor.sceneDefaultTiles)), "sceneDefault")  
   var scenes : Map[(Int,Int),ActorRef] = Map((0,0) -> defaultSceneActor)
   
    def receive = {
@@ -116,6 +91,60 @@ List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1,1,1,1,1)
  object WorldActor {
    val logger = LoggerFactory.getLogger("actors.WorldActor");
    lazy val worldActor: ActorRef = Akka.system.actorOf(Props(classOf[WorldActor]))
+   
+   //for(line <- Source.fromPath("myfile.txt").getLines())
+   
+   
+     val sceneDefaultTiles : List[List[Int]] = List(
+List(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
+List(1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
+List(1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
+List(1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1),
+List(1,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1),
+List(1,1,2,2,2,2,1,1,3,3,3,3,1,1,1,1),
+List(1,1,1,2,2,1,1,3,2,3,2,3,3,1,1,1),
+List(1,1,1,1,1,1,1,3,2,2,2,2,3,1,1,1),
+List(1,1,1,1,1,1,1,1,3,3,3,3,1,1,1,1),
+List(1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1),
+List(1,1,1,1,1,1,2,2,2,2,2,2,2,2,1,1),
+List(1,1,1,1,1,2,1,2,2,3,4,3,2,1,2,1),
+List(1,1,1,1,1,2,1,2,2,3,4,3,2,1,2,1),
+List(1,1,1,1,1,2,1,2,2,3,3,3,2,1,2,1),
+List(1,1,1,1,1,2,1,2,2,2,2,2,2,1,2,1),
+List(1,1,1,1,2,2,1,2,2,2,2,2,2,1,2,2),
+List(1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1),
+List(1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1),
+List(1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1),
+List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1),
+List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1),
+List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1),
+List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1),
+List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1)
+)
+  
+ 
+  def getDefaultScene = {
+     	val sceneLoadMessage: ObjectNode = Json.newObject();
+			sceneLoadMessage.put("type", "loadScene");
+			
+			val sceneJson  = sceneLoadMessage.putArray("scene");
+			
+			
+    		for (row <- sceneDefaultTiles) {
+				
+    		  val sceneRowJson = sceneJson.addArray()
+				
+ 
+				for (tile <- row) {
+					sceneRowJson.add(tile);
+				}
+			}
+			WorldActor.logger.info(sceneLoadMessage.toString());
+			
+			sceneLoadMessage.toString()
+   }
+  
+  
  }
  
  class UserActor(out: PushEnumerator[String], name: String) extends Actor {
@@ -130,6 +159,10 @@ List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1,1,1,1,1)
 			userMoveMessage.put("y", y);
 			out.push(userMoveMessage.toString());
 		}
+	  
+	  case Subscribe() => {
+		  WorldActor.worldActor ! MoveFromSceneToScene("default", 0, 0, 0, 0)
+	  }
 	  
 	  case LoadScene(sceneName) => {
 		  WorldActor.worldActor ! MoveFromSceneToScene(sceneName, 0, 0, 0, 0)
@@ -155,7 +188,7 @@ List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1,1,1,1,1)
 				}
 			}
 			WorldActor.logger.info(sceneLoadMessage.toString());
-			out.push(sceneLoadMessage.toString());
+			 sender ! sceneLoadMessage.toString();
 		}
 	}
 }

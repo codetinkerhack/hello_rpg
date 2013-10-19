@@ -78,28 +78,36 @@ Crafty.scene('SceneTransition', function(){
 		.attr({ x: 0, y: Game.height()/2 - 24, w: Game.width() })
 		.css($text_css);
     
+
+			// Play a ringing sound to indicate the start of the journey
+			Crafty.audio.play('ring');
     
+    		Crafty.scene('Game');    
     
     $.ajax({
         url: "/getScene",
         dataType: "json",
       //  context: container,
         success: function(data) {
+           alert(data.scene[0][0]);
            
            // Place a tree at every edge square on our grid of 16x16 tiles
             for (var x = 0; x < Game.map_grid.width; x++) {
             	for (var y = 0; y < Game.map_grid.height; y++) {
-        			switch (data[x][y]) {
-                        case '1': // Tree
-                            Crafty.e('Tree').at(x, y);
+        			switch (data.scene[x][y]) {
+        			 	case 0: // Tree
+                            //Crafty.e('Tree').at(x, y);
+                            break; 
+                        case 1: // Tree
+                            //Crafty.e('Tree').at(x, y);
                             break;
-                        case '2': 
+                        case 2: 
                             Crafty.e('Bush').at(x, y);
                             break;
-                        case '3': 
+                        case 3: 
                             Crafty.e('Rock').at(x, y);
                             break;
-                        case '4': 
+                        case 4: 
                             Crafty.e('Village').at(x, y);
                             break;
                         default: 
@@ -107,6 +115,12 @@ Crafty.scene('SceneTransition', function(){
         		}
         	}
         
+        	// Player character, placed at 5, 5 on our grid
+			this.player = Crafty.e('PlayerCharacter').at(0, 0);
+			//this.occupied[this.player.at().x][this.player.at().y] = true;
+    
+
+
         },
         
         error: function(jqXHR, textStatus, error) {
@@ -120,15 +134,7 @@ Crafty.scene('SceneTransition', function(){
         }
     });
     
-    // Player character, placed at 5, 5 on our grid
-	this.player = Crafty.e('PlayerCharacter').at(5, 5);
-	//this.occupied[this.player.at().x][this.player.at().y] = true;
     
-
-	// Play a ringing sound to indicate the start of the journey
-	Crafty.audio.play('ring');
-    
-    Crafty.scene('Game');
     
 });
 
