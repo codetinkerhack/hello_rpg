@@ -10,7 +10,9 @@ import play.libs.Akka
 import play.libs.Json
 import play.mvc.WebSocket
 import org.codehaus.jackson.JsonNode
-import org.codehaus.jackson.node.{ArrayNode,ObjectNode} 
+import org.codehaus.jackson.node.{ArrayNode,ObjectNode}
+import org.slf4j.LoggerFactory
+import play.api.libs.iteratee.PushEnumerator
 
 
 /**
@@ -19,7 +21,7 @@ import org.codehaus.jackson.node.{ArrayNode,ObjectNode}
  */
 
 class SceneActor(scene: List[List[Int]]) extends Actor {
-
+ 
   protected[this] var users: HashSet[ActorRef] = HashSet.empty[ActorRef]
 
   def receive = {
@@ -27,7 +29,7 @@ class SceneActor(scene: List[List[Int]]) extends Actor {
       //val newPrice = stockQuote.newPrice(stockHistory.last.doubleValue())
       //stockHistory = stockHistory.drop(1) :+ newPrice
       // notify watchers
-      println("name: "+name+"x: "+x+"y: "+y)
+      //println("name: "+name+"x: "+x+"y: "+y)
       users.foreach(_ ! UserMove(name, x, y))
     case Subscribe() =>
       // send the scene to the user
@@ -56,8 +58,12 @@ case class MoveFromSceneToScene(user: String, fromSceneX:Int, fromSceneY:Int, to
 
 case class ShutDown()
 
+
+
 class WorldActor extends Actor {
   
+  
+   
   val sceneDefaultTiles : List[List[Int]] = List(
 List(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
 List(1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1),
@@ -91,14 +97,14 @@ List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1,1,1,1,1)
      }
      
      case LoadScene(scene:String) => {
-       println(scene)
+       
        // Load and create SceneActors
      }
      
      case MoveFromSceneToScene(user:String, fx:Int, fy:Int, tx:Int, ty:Int) => {
 
        // TODO: lookup Scene to Scene mapping within World
-       
+       WorldActor.logger.info("User: " + user)
        // get or pass default scene which is
        context.child("scene"+tx+ty).getOrElse {
          defaultSceneActor
@@ -108,14 +114,13 @@ List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1,1,1,1,1)
  }
  
  object WorldActor {
+   val logger = LoggerFactory.getLogger("actors.WorldActor");
    lazy val worldActor: ActorRef = Akka.system.actorOf(Props(classOf[WorldActor]))
  }
  
- class UserActor(out: WebSocket.Out[JsonNode], name: String) extends Actor {
+ class UserActor(out: PushEnumerator[String], name: String) extends Actor {
 
-     WorldActor.worldActor ! MoveFromSceneToScene(name, 0, 0, 0, 0)
-        
-
+  
 	def receive = {
 	  case UserMove(name, x,y) => {
 			val userMoveMessage: ObjectNode = Json.newObject();
@@ -123,25 +128,34 @@ List(1,1,1,1,1,1,1,2,2,1,1,2,2,1,1,1,1,1,1,1)
 			userMoveMessage.put("name", name);
 			userMoveMessage.put("x", x);
 			userMoveMessage.put("y", y);
-			out.write(userMoveMessage);
-		} 
+			out.push(userMoveMessage.toString());
+		}
 	  
+	  case LoadScene(sceneName) => {
+		  WorldActor.worldActor ! MoveFromSceneToScene(sceneName, 0, 0, 0, 0)
+	  }
 	  
 	  case Scene(scene) =>
-	    {			// push the history to the client
+	    {		
 			
 
 			val sceneLoadMessage: ObjectNode = Json.newObject();
 			sceneLoadMessage.put("type", "loadScene");
-
-			for (row <- scene) {
-				val sceneRowJson: ArrayNode  = sceneLoadMessage.putArray("sceneRow");
+			
+			val sceneJson  = sceneLoadMessage.putArray("scene");
+			
+			
+    		for (row <- scene) {
+				
+    		  val sceneRowJson = sceneJson.addArray()
+				
+ 
 				for (tile <- row) {
 					sceneRowJson.add(tile);
 				}
 			}
-			
-			out.write(sceneLoadMessage);
+			WorldActor.logger.info(sceneLoadMessage.toString());
+			out.push(sceneLoadMessage.toString());
 		}
 	}
 }

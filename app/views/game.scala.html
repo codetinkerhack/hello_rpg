@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+@()(implicit request: RequestHeader)
 
-@import play.mvc.Http.Context.Implicit._
+<!DOCTYPE html>
 
 <html>
 <head>
-    <title>WestlandGangs</title>
+    <title>Hello-RPG</title>
     <link rel='stylesheet' href='@routes.WebJarAssets.at(WebJarAssets.locate("css/bootstrap.min.css"))'>
     <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.min.css")">
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
@@ -12,14 +12,16 @@
     <script type='text/javascript' src='@routes.WebJarAssets.at(WebJarAssets.locate("jquery.flot.js"))'></script>
     <script type='text/javascript' src='@routes.Assets.at("javascripts/index.min.js")'></script>
     <script  type='text/javascript' src='@routes.Assets.at("javascripts/utils.js")'></script>
-    <script  type='text/javascript' src='@routes.Assets.at("javascripts/game.js")'></script>
-
+	<script  type='text/javascript' src='@routes.Assets.at("javascripts/crafty.js")'></script>
+	<script  type='text/javascript' src='@routes.Assets.at("javascripts/game.js")'></script>
+	<script  type='text/javascript' src='@routes.Assets.at("javascripts/components.js")'></script>
+	<script  type='text/javascript' src='@routes.Assets.at("javascripts/scenes.js")'></script>
 </head>
-<body data-ws-url="@routes.Application.ws.webSocketURL(request)">
-    <canvas id="canvas" width="1000" height="680"></canvas>
-   	<script type="text/javascript">
-
-        window.onload = gameLoop;
-    </script>
+<body data-ws-url="@routes.ApplicationScala.ws.webSocketURL()">
+    <div id="cr-stage" style="width: 384px; height: 256px; overflow: hidden; position: relative; background-color: rgb(87, 109, 20); background-position: initial initial; background-repeat: initial initial;"><div style="position: absolute; z-index: 1; -webkit-transform: scale(1, 1);"></div>
+    <canvas width="384" height="256" style="position: absolute; left: 0px; top: 0px;"></canvas></div>
+  <script>
+    window.addEventListener('load', Game.start);
+  </script>
 </body>
 </html>

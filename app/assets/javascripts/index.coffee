@@ -3,8 +3,8 @@ $ ->
   ws.onmessage = (event) ->
     message = JSON.parse event.data
     switch message.type
-      when "stockhistory"
-        populateStockHistory(message)
+      when "loadScene"
+        loadScene(message)
       when "stockupdate"
         updateStockChart(message)
       else
@@ -38,6 +38,11 @@ getAxisMin = (data) ->
 getAxisMax = (data) ->
   Math.max.apply(Math, data) * 1.1
 
+loadScene = (message) ->
+    scene = message.scene
+    
+    
+    
 populateStockHistory = (message) ->
   chart = $("<div>").addClass("chart").prop("id", message.symbol)
   chartHolder = $("<div>").addClass("chart-holder").append(chart)
