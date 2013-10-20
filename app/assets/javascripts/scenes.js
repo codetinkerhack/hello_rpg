@@ -9,7 +9,8 @@ $(function() {
     message = JSON.parse(event.data);
     switch (message.type) {
       case "loadScene":
-        return loadScene(message);
+        console.log(message);
+        return Crafty.trigger("LoadScene",message);
       case "userMove":
 		return Crafty.trigger("UserMove", message);       
       default:
@@ -69,30 +70,60 @@ Crafty.scene('Victory', function() {
 
 // Loading scene
 // -------------
-Crafty.scene('SceneTransition', function(){ 
-    
-//    Crafty.e('2D, DOM, Text')
-//    	.text('Loading Scene; please wait...')
-//		.attr({ x: 0, y: Game.height()/2 - 24, w: Game.width() })
-//		.css($text_css);
-    
 
-			// Play a ringing sound to indicate the start of the journey
-			//Crafty.audio.play('ring');
-    
-    		//Crafty.scene('Game');    
-    
-    $.ajax({
-        url: "/getScene",
-        dataType: "json",
-      //  context: container,
-        success: function(data) {
-        
-           
-           // Place a tree at every edge square on our grid of 16x16 tiles
+
+Crafty.scene('SceneTransition', function(){ 
+
+// Player character, placed at 5, 5 on our grid
+			this.player = Crafty.e('PlayerCharacter').at(0, 0);
+          
+          this.player.bind('EnterFrame', function () {
+	
+            if (this.y != this.oy || this.x != this.ox) {
+    			this.oy = this.y;
+    			this.ox = this.x;
+                userMove = {type: "userMove", x: this.x, y: this.y};
+                WSocket.send(JSON.stringify(userMove));
+    			
+    		}
+
+			
+			
+            });
+            
+          this.player1 = Crafty.e('PlayerCharacter1').at(-1, -1).attr({alpha: 0.8});
+			
+			this.player1.bind('UserMove', function (message) {
+				//alert(message);
+				this.x = message.x;
+				this.y = message.y;
+				
+				
+					var data = {x: this.x-this.ox, y: this.y-this.oy };
+					this.oy = this.y;
+					this.ox = this.x;
+					this.trigger("NewDirection", data);
+				
+				
+				
+			});
+			
+		 this.player1.bind('EnterFrame', function () {
+	
+            if (this.y != this.oy || this.x != this.ox) {
+    			this.oy = this.y;
+    			this.ox = this.x;
+               
+    			this.stop();
+				} 
+            });					
+	
+			
+    this.bind('LoadScene', function(message) {    
+            // Place a tree at every edge square on our grid of 16x16 tiles
             for (var x = 0; x < Game.map_grid.width; x++) {
             	for (var y = 0; y < Game.map_grid.height; y++) {
-        			switch (data.scene[x][y]) {
+        			switch (message.scene[x][y]) {
         			 	case 0: // Tree
                             //Crafty.e('Tree').at(x, y);
                             break; 
@@ -112,72 +143,28 @@ Crafty.scene('SceneTransition', function(){
         			}
         		}
         	}
-        
-        	// Player character, placed at 5, 5 on our grid
-			this.player = Crafty.e('PlayerCharacter').at(0, 0);
-          
-          this.player.bind('EnterFrame', function () {
-	
-            if (this.y != this.oy || this.x != this.ox) {
-    			this.oy = this.y;
-    			this.ox = this.x;
-                userMove = {x: this.x, y: this.y};
-                WSocket.send(JSON.stringify(userMove));
-    			
-    		}
+			
+			this.player.x=0;
+			this.player.y=0;
+			
 
-			
-			
-            });
-            
-          this.player1 = Crafty.e('PlayerCharacter1').at(-1, -1).attr({alpha: 0.2, x: 0, y: 0});
-			
-			this.player1.bind('UserMove', function (message) {
-				//alert(message);
-				this.x = message.x;
-				this.y = message.y;
-				
-				
-					var data = {x: this.x-this.ox, y: this.y-this.oy };
-					this.oy = this.y;
-					this.ox = this.x;
-					this.trigger("NewDirection", data);
-				
-				
-				
-			}
-			);
-			
-		 this.player1.bind('EnterFrame', function () {
 	
-            if (this.y != this.oy || this.x != this.ox) {
-    			this.oy = this.y;
-    			this.ox = this.x;
-               
-    			this.stop();
-    		} 
-
-			
-			
-            });	
-			
-            
-        },
         
-        error: function(jqXHR, textStatus, error) {
-            Crafty.e('2D, DOM, Text')
-		        .text('Oops.. error loading Scene...')
-		        .attr({ x: 0, y: Game.height()/2 - 24, w: Game.width() })
-		        .css($text_css);
+});
+
+
+		// Subscribe to scene
+		subscribe = {type: "subscribe"};
+        WSocket.send(JSON.stringify(subscribe));		
             
-         //   console.log("Error: " + JSON.parse(jqXHR.responseText).error);
-            
-        }
     });
     
     
-    
-});
+
+
+
+
+
 
 // Handles the loading of binary assets such as images and audio files
 Crafty.scene('Loading', function(){
@@ -229,6 +216,7 @@ Crafty.scene('Loading', function(){
 			ring:     ['assets/candy_dish_lid.mp3', 'assets/candy_dish_lid.ogg', 'assets/candy_dish_lid.aac']
 		});
 
+		
 		// Now that our sprites are ready to draw, start the game
 		Crafty.scene('SceneTransition');
 	})
