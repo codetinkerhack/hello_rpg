@@ -1,3 +1,5 @@
+@(userForm: Form[UserData])
+
 @import play.mvc.Http.Context.Implicit._
 @import helper._
 
@@ -5,7 +7,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WestlandGangs</title>
+    <title>Hello-RPG</title>
     <link rel='stylesheet' href='@routes.WebJarAssets.at(WebJarAssets.locate("css/bootstrap.min.css"))'>
     <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.min.css")">
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
@@ -13,7 +15,8 @@
 <body>
 
 @form(action = routes.ApplicationScala.login()) {
-
+	@inputText(userForm("name"))	
+	@inputText(userForm("hero"))	
         <input type="submit"/> 
     
 }

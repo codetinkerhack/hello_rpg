@@ -27,11 +27,11 @@ public class Application extends Controller {
 
 	 static Logger logger = LoggerFactory.getLogger(controllers.Application.class);
 //	 static Form<User> userForm = form(User.class);
-     
-    public static Result index() {
-         
-        return ok(views.html.index.render());
-    }
+    //  
+    // public static Result index() {
+    //      
+    //     return ok(views.html.index.render());
+    // }
     
 //     public static Result login() {
 //    
@@ -61,7 +61,7 @@ public class Application extends Controller {
                     @Override
                     public void invoke(JsonNode jsonNode) throws Throwable {
                         // parse the JSON into WatchStock
-                        UserMove userMove = new UserMove(jsonNode.get("name").getTextValue(),jsonNode.get("x").getIntValue(),jsonNode.get("y").getIntValue());
+                        UserMove userMove = new UserMove("", jsonNode.get("name").getTextValue(),jsonNode.get("x").getIntValue(),jsonNode.get("y").getIntValue());
                         // send the watchStock message to the StocksActor
                         logger.info("Received: "+jsonNode.toString());
                         userActor.tell(userMove, userActor);

@@ -1,27 +1,25 @@
 // Game scene
 // -------------
 // Runs the core gameplay loop
-Crafty.scene('Game', function() {
 
-	// Send move messages on direction key press events
-	this.sendMoveOnKeys = Crafty.bind(function(e) {
-        if(e.key == Crafty.keys['LEFT_ARROW']) {
-              userMove = {name: 'Ev', x: Crafty('PlayerCharacter').x, y: Crafty('PlayerCharacter').y};
-              window.ws.send(JSON.stringify(userMove));
-        } else if (e.key == Crafty.keys['RIGHT_ARROW']) {
-              userMove = {name: 'Ev', x: Crafty('PlayerCharacter').x, y: Crafty('PlayerCharacter').y};
-              window.ws.send(JSON.stringify(userMove));
-            
-        } else if (e.key == Crafty.keys['UP_ARROW']) {
-              userMove = {name: 'Ev', x: Crafty('PlayerCharacter').x, y: Crafty('PlayerCharacter').y};
-              window.ws.send(JSON.stringify(userMove));
-        
-        } else if (e.key == Crafty.keys['DOWN_ARROW']) {
-              userMove = {name: 'Ev', x: Crafty('PlayerCharacter').x, y: Crafty('PlayerCharacter').y};
-              window.ws.send(JSON.stringify(userMove));
-        
-        }
-	});
+$(function() {
+  WSocket = new WebSocket($("body").data("ws-url"));
+  return WSocket.onmessage = function(event) {
+    var message;
+    message = JSON.parse(event.data);
+    switch (message.type) {
+      case "loadScene":
+        return loadScene(message);
+      case "userMove":
+		return Crafty.trigger("UserMove", message);       
+      default:
+        return console.log(message);
+    }
+  };
+});
+
+
+Crafty.scene('Game', function() {
 
     
     // Show the victory screen once all villages are visisted
@@ -73,23 +71,23 @@ Crafty.scene('Victory', function() {
 // -------------
 Crafty.scene('SceneTransition', function(){ 
     
-    Crafty.e('2D, DOM, Text')
-    	.text('Loading Scene; please wait...')
-		.attr({ x: 0, y: Game.height()/2 - 24, w: Game.width() })
-		.css($text_css);
+//    Crafty.e('2D, DOM, Text')
+//    	.text('Loading Scene; please wait...')
+//		.attr({ x: 0, y: Game.height()/2 - 24, w: Game.width() })
+//		.css($text_css);
     
 
 			// Play a ringing sound to indicate the start of the journey
-			Crafty.audio.play('ring');
+			//Crafty.audio.play('ring');
     
-    		Crafty.scene('Game');    
+    		//Crafty.scene('Game');    
     
     $.ajax({
         url: "/getScene",
         dataType: "json",
       //  context: container,
         success: function(data) {
-           alert(data.scene[0][0]);
+        
            
            // Place a tree at every edge square on our grid of 16x16 tiles
             for (var x = 0; x < Game.map_grid.width; x++) {
@@ -117,10 +115,53 @@ Crafty.scene('SceneTransition', function(){
         
         	// Player character, placed at 5, 5 on our grid
 			this.player = Crafty.e('PlayerCharacter').at(0, 0);
-			//this.occupied[this.player.at().x][this.player.at().y] = true;
-    
+          
+          this.player.bind('EnterFrame', function () {
+	
+            if (this.y != this.oy || this.x != this.ox) {
+    			this.oy = this.y;
+    			this.ox = this.x;
+                userMove = {x: this.x, y: this.y};
+                WSocket.send(JSON.stringify(userMove));
+    			
+    		}
 
+			
+			
+            });
+            
+          this.player1 = Crafty.e('PlayerCharacter1').at(-1, -1).attr({alpha: 0.2, x: 0, y: 0});
+			
+			this.player1.bind('UserMove', function (message) {
+				//alert(message);
+				this.x = message.x;
+				this.y = message.y;
+				
+				
+					var data = {x: this.x-this.ox, y: this.y-this.oy };
+					this.oy = this.y;
+					this.ox = this.x;
+					this.trigger("NewDirection", data);
+				
+				
+				
+			}
+			);
+			
+		 this.player1.bind('EnterFrame', function () {
+	
+            if (this.y != this.oy || this.x != this.ox) {
+    			this.oy = this.y;
+    			this.ox = this.x;
+               
+    			this.stop();
+    		} 
 
+			
+			
+            });	
+			
+            
         },
         
         error: function(jqXHR, textStatus, error) {

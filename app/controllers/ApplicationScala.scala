@@ -12,54 +12,63 @@ import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.Iteratee
 import akka.pattern.ask
 import akka.actor.Actor
-import actors.UserActor
 import play.libs.Akka
 import akka.actor.Props
-import actors.LoadScene
 import scala.concurrent.Await
 import akka.util.Timeout
-import actors.UserMove
-import actors.Subscribe
-import actors.Scene
-import actors.WorldActor
+import play.api.data._
+import play.api.data.Forms._
+import actors._
+
+case class UserData(name : String, hero : String)
+
 
 object ApplicationScala extends Controller {
 
-    //val logger = LoggerFactory.getLogger(controllers.Application.class);
+    val userForm = Form(
+        mapping (
+            "name" -> text,
+            "hero" -> text
+        ) (UserData.apply) (UserData.unapply)
+    
+    )
+    
      
     def index = Action { request => 
-         
-       Ok(views.html.index());
+    	//TODO: Random user?
+      //    val randomData = Map("name" -> "", "hero"->"")
+  //    val userData = userForm.bind(anyData)
+      Ok(views.html.index(userForm));
     }
     
+   
     def login = Action { implicit request => 
    
-//        Form<User> user = userForm.bindFromRequest();
-//        logger.info(user.name());
-   //     session().put("userName", "Ev");
+        val userData = userForm.bindFromRequest.get;
+        val uuid = java.util.UUID.randomUUID().toString();
         
-        Ok(views.html.game());
+        Ok(views.html.game()).withSession(
+        		"name" -> userData.name, 
+        		"hero" -> userData.hero,
+        		"uuid" -> uuid);
     }
 
 
     def ws = WebSocket.using[String] { request => {
   
-       	val name = "Ev"//session().get("playerName")
-        
-        
-        
-        //Akka.system().actorOf(Props.create(UserActor.class, out, name));
-        
-        // Log events to the console
+       	val userName =  request.session.get("name").getOrElse("")
+       	val uuid =  request.session.get("uuid").getOrElse("")
         
         val out = Enumerator.imperative[String]()
-        val userActor = Akka.system.actorOf(Props(new UserActor(out, name)), name)
+        val userActor = Akka.system.actorOf(Props(new UserActor(out, uuid, userName)), uuid)
+        
+        userActor ! Subscribe()
         
         val in = Iteratee.foreach[String] {
 
        	  jsonMessage => {
        		  	val parsedMessage = Json.parse(jsonMessage)
-       	    	val  userMove = new UserMove((parsedMessage \ "name").as[String], (parsedMessage \ "x").as[Int],(parsedMessage \ "y").as[Int])
+       	    	val  userMove = new SendUserMove(uuid, userName, (parsedMessage \ "x").as[Int],(parsedMessage \ "y").as[Int])
                 userActor ! userMove
        	  	}
         }
