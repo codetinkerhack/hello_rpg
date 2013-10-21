@@ -24,6 +24,9 @@ Crafty.c('Grid', {
 Crafty.c('Actor', {
 	init: function() {
 		this.requires('2D, Canvas, Grid');
+		this.bind('ClearScene', function(message) {
+			this.destroy();
+		});
 	}
 });
 

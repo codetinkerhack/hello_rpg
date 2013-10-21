@@ -14,13 +14,21 @@ import org.codehaus.jackson.node.{ ArrayNode, ObjectNode }
 import org.slf4j.LoggerFactory
 import play.api.libs.iteratee.PushEnumerator
 import play.api.libs.json.JsValue
+import utils.Utils
+import play.api.Play
+
+
+case class Scene(name: String, sceneTiles: List[List[Int]], sceneTransitions: List[String])
+
+//class World(scenes: List[Scene])
 
 
 
-
-case class LoadScene(sceneActorName: String, scene: List[List[Int]])
+case class LoadScene(sceneActorName: String, scene: Scene)
 
 case class Subscribe()
+
+case class SubscribeScene(scene: String)
 
 case class UnSubscribe()
 
@@ -36,7 +44,7 @@ case class UserMessage(message: JsValue)
 
 case class LoadWorld()
 
-case class MoveFromSceneToScene(id: String, name: String, fromSceneX: Int, fromSceneY: Int, toSceneX: Int, toSceneY: Int)
+case class MoveFromSceneToScene(id: String, name: String, fromScene: String, transitionDirection: Int)
 
 case class ShutDown()
 
@@ -49,7 +57,7 @@ case class ShutDown()
  * The SceneActor maintains a list of users subscribed to a Scene events.
  */
 
-class SceneActor(sceneActorName: String, scene: List[List[Int]]) extends Actor {
+class SceneActor(sceneActorName: String, scene: Scene) extends Actor {
 
   protected[this] var users: HashSet[ActorRef] = HashSet.empty[ActorRef]
 
@@ -75,10 +83,14 @@ class SceneActor(sceneActorName: String, scene: List[List[Int]]) extends Actor {
 
 class WorldActor extends Actor {
 
-  val defaultSceneActor = context.actorOf(Props(new SceneActor("defaultSceneActor", WorldActor.sceneDefaultTiles)), "defaultSceneActor")
-  val sceneActor10 = context.actorOf(Props(new SceneActor("scene10", WorldActor.scene10)), "scene10")
-  var scenes: Map[(Int, Int), ActorRef] = Map((0, 0) -> defaultSceneActor, (1, 0) -> sceneActor10)
+  val world: Map[String, Scene] = Utils.loadWorld("C:/Users/evgeniyshatokhin/Desktop/GitHub/hello_rpg/app")
 
+  world.foreach(scene => context.actorOf(Props(new SceneActor(scene._1, scene._2)), scene._1))
+
+  // default scene
+  val defaultSceneActor = context.child(WorldActor.defaultScene).get
+
+  
   def receive = {
     case LoadWorld() => {
 
@@ -95,14 +107,26 @@ class WorldActor extends Actor {
         defaultSceneActor
       } forward UnSubscribe()
     }
+    
+    case SubscribeScene(scene) => {
+      context.child(scene).getOrElse {
+    	defaultSceneActor
+      } forward Subscribe()
+      
+    }
 
   
-    case MoveFromSceneToScene(id, user, fx, fy, tx, ty) => {
+    case MoveFromSceneToScene(id, user, sf, sceneTo) => {
+      
+      self ! UnSubscribeScene(sf);
 
-      // TODO: lookup Scene to Scene mapping within World
-      WorldActor.logger.info("MoveFromSceneToScene: User: " + user + " scene" + tx + ty)
+      WorldActor.logger.info("MoveFromSceneToScene: User: " + user + " scene from:  " + sf + "to: " + sceneTo)
+      
+      
       // get or pass default scene which is
-      context.child("scene" + tx + ty).getOrElse {
+      val scene = world.get(sf).get
+      
+      context.child(scene.sceneTransitions(sceneTo)).getOrElse {
         defaultSceneActor
       } forward Subscribe()
     }
@@ -110,82 +134,14 @@ class WorldActor extends Actor {
 }
 
 object WorldActor {
+
   val logger = LoggerFactory.getLogger("actors.WorldActor");
+  val defaultScene = "scene.json"
   lazy val worldActor: ActorRef = Akka.system.actorOf(Props(classOf[WorldActor]))
 
-  //for(line <- Source.fromPath("myfile.txt").getLines())
 
-  val sceneDefaultTiles: List[List[Int]] = List(
-    List(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-    List(1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-    List(1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-    List(1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-    List(1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-    List(1, 1, 2, 2, 2, 2, 1, 1, 3, 3, 3, 3, 1, 1, 1, 1),
-    List(1, 1, 1, 2, 2, 1, 1, 3, 2, 3, 2, 3, 3, 1, 1, 1),
-    List(1, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 3, 1, 1, 1),
-    List(1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 1, 1),
-    List(1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1),
-    List(1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1),
-    List(1, 1, 1, 1, 1, 2, 1, 2, 2, 3, 4, 3, 2, 1, 2, 1),
-    List(1, 1, 1, 1, 1, 2, 1, 2, 2, 3, 4, 3, 2, 1, 2, 1),
-    List(1, 1, 1, 1, 1, 2, 1, 2, 2, 3, 3, 3, 2, 1, 2, 1),
-    List(1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 1),
-    List(1, 1, 1, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2),
-    List(1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1),
-    List(1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1),
-    List(1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 1),
-    List(1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1),
-    List(1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1),
-    List(1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1),
-    List(1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1),
-    List(1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1))
-    
-    val scene10: List[List[Int]] = List(
-    List(1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1),
-    List(1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-    List(1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-    List(1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-    List(1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1),
-    List(1, 1, 2, 2, 2, 2, 1, 1, 3, 3, 3, 3, 1, 1, 1, 2),
-    List(2, 1, 1, 2, 2, 1, 1, 3, 2, 3, 2, 3, 3, 1, 1, 2),
-    List(2, 1, 1, 1, 1, 1, 1, 3, 2, 2, 2, 2, 3, 1, 1, 2),
-    List(2, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 1, 2),
-    List(2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2),
-    List(2, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 2),
-    List(2, 1, 1, 1, 1, 2, 1, 2, 2, 3, 4, 3, 2, 1, 2, 2),
-    List(2, 1, 1, 1, 1, 2, 1, 2, 2, 3, 4, 3, 2, 1, 2, 2),
-    List(2, 1, 1, 1, 1, 2, 1, 2, 2, 3, 3, 3, 2, 1, 2, 2),
-    List(2, 1, 1, 1, 1, 2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2),
-    List(2, 1, 1, 1, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 2),
-    List(2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2),
-    List(2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2),
-    List(2, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2),
-    List(2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2),
-    List(2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2),
-    List(2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2),
-    List(2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2),
-    List(2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2))
 
-  def getDefaultScene = {
-    val sceneLoadMessage: ObjectNode = Json.newObject();
-    sceneLoadMessage.put("type", "loadScene");
-
-    val sceneJson = sceneLoadMessage.putArray("scene");
-
-    for (row <- sceneDefaultTiles) {
-
-      val sceneRowJson = sceneJson.addArray()
-
-      for (tile <- row) {
-        sceneRowJson.add(tile);
-      }
-    }
-    WorldActor.logger.info(sceneLoadMessage.toString());
-
-    sceneLoadMessage.toString()
-  }
-
+   
 }
 
 class UserActor(out: PushEnumerator[String], id: String, name: String) extends Actor {
@@ -202,21 +158,19 @@ class UserActor(out: PushEnumerator[String], id: String, name: String) extends A
     }
     
     case SendUserMove(id, name, x, y) => {
-      if(y < 255 && y > 0) {
-    	  	WorldActor.logger.info("SendUserMove: sceneActor: " + currentSceneActorName + " id: " +id +" name: " + name + " x: " + x + " y: " + y)
+      if(y >= 0 && y <= 255 &&  x >= 0 && x <= 384) {
+    	  WorldActor.logger.info("SendUserMove: sceneActor: " + currentSceneActorName + " id: " +id +" name: " + name + " x: " + x + " y: " + y)  
     	  
     	  	
     	  WorldActor.worldActor ! UserMoveScene(currentSceneActorName, id, name, x, y)
       } else if (y > 255) {
-      
-    	  WorldActor.worldActor ! UnSubscribeScene(currentSceneActorName)
-    	  
-          WorldActor.worldActor ! MoveFromSceneToScene(id, name, 0, 0, 1, 0)
+          WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 1)
       } else if (y < 0) {
-      
-    	  WorldActor.worldActor ! UnSubscribeScene(currentSceneActorName)
-    	  
-          WorldActor.worldActor ! MoveFromSceneToScene(id, name, 0, 0, 0, 0)
+          WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 0)
+      } else if (x > 384) {
+          WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 3)
+      } else if (x < 0) {
+          WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 2)
       }
     }
 
@@ -233,7 +187,7 @@ class UserActor(out: PushEnumerator[String], id: String, name: String) extends A
     }
 
     case Subscribe() => {
-      WorldActor.worldActor ! MoveFromSceneToScene(id, name, 0, 0, 0, 0)
+      WorldActor.worldActor ! SubscribeScene(WorldActor.defaultScene)
     }
 
     case LoadScene(sceneActorName, scene) =>
@@ -245,7 +199,7 @@ class UserActor(out: PushEnumerator[String], id: String, name: String) extends A
 
         val sceneJson = sceneLoadMessage.putArray("scene");
 
-        for (row <- scene) {
+        for (row <- scene.sceneTiles) {
 
           val sceneRowJson = sceneJson.addArray()
 

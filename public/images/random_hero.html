@@ -1,0 +1,38 @@
+<html>
+<h4>Original Image</h4>
+<img id="testImage" src='hunter.png'/>
+
+<h4>Image copied to canvas</h4>
+<canvas id="canvas" width="128" height="128"></canvas>
+
+<h4>Modified Image copied to an image tag</h4>
+<img id="imageData"/>
+
+
+
+<script>
+var canvas = document.getElementById("canvas"),
+    ctx = canvas.getContext("2d"),
+    image = document.getElementById("testImage");
+
+ctx.drawImage(image,0,0);
+
+var imgd = ctx.getImageData(0, 0, 128, 128),
+    pix = imgd.data,
+    uniqueColor = [0,0,255]; // Blue for an example, can change this value to be anything.
+
+// Loops through all of the pixels and modifies the components.
+for (var i = 0, n = pix.length; i < n; i += 4) {
+      pix[i] = uniqueColor[0];   // Red component
+      pix[i+1] = uniqueColor[1]; // Blue component
+      pix[i+2] = uniqueColor[2]; // Green component
+      //pix[i+3] is the transparency.
+}
+
+ctx.putImageData(imgd, 0, 0);
+
+
+var savedImageData = document.getElementById("imageData");
+savedImageData.src = canvas.toDataURL("image/png"); 
+</script>
+</html>

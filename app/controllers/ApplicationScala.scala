@@ -70,19 +70,4 @@ object ApplicationScala extends Controller {
     }
   }
 
-  def getScene = Action {
-
-    //        implicit val timeout = Timeout(5000)
-    //        
-    //        val userActor = Akka.system.actorSelection("Ev")
-    //
-    //        //TODO: Scene name? 
-    //        val future = userActor ? LoadScene("default")
-    //        
-    //        //TODO: Unlikely but timeout Error sent back?
-    //        val result = Await.result(future, timeout.duration).asInstanceOf[String]
-
-    Ok(WorldActor.getDefaultScene)
-  }
-
 }

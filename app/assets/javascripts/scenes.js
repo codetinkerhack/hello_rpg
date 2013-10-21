@@ -10,6 +10,7 @@ $(function() {
     switch (message.type) {
       case "loadScene":
         console.log(message);
+		Crafty.trigger("ClearScene",message);
         return Crafty.trigger("LoadScene",message);
       case "userMove":
 		return Crafty.trigger("UserMove", message);       
@@ -74,8 +75,35 @@ Crafty.scene('Victory', function() {
 
 Crafty.scene('SceneTransition', function(){ 
 
-// Player character, placed at 5, 5 on our grid
-			this.player = Crafty.e('PlayerCharacter').at(0, 0);
+    this.bind('LoadScene', function(message) {    
+            // Place a tree at every edge square on our grid of 16x16 tiles
+            for (var x = 0; x < Game.map_grid.width; x++) {
+            	for (var y = 0; y < Game.map_grid.height; y++) {
+        			switch (message.scene[x][y]) {
+        			 	case 0: // Ground earth
+                            //Crafty.e('Tree').at(x, y);
+                            break; 
+						case 1: // Ground Grass
+                            //Crafty.e('Tree').at(x, y);
+                            break; 
+                        case 2: // Tree
+                            Crafty.e('Tree').at(x, y);
+                            break;
+                        case 3: 
+                            Crafty.e('Bush').at(x, y);
+                            break;
+                        case 4: 
+                            Crafty.e('Rock').at(x, y);
+                            break;
+                        case 5: 
+                            Crafty.e('Village').at(x, y);
+                            break;
+                        default: 
+        			}
+        		}
+        	}
+
+						this.player = Crafty.e('PlayerCharacter').at(0, 0);
           
           this.player.bind('EnterFrame', function () {
 	
@@ -116,36 +144,13 @@ Crafty.scene('SceneTransition', function(){
                
     			this.stop();
 				} 
-            });					
-	
-			
-    this.bind('LoadScene', function(message) {    
-            // Place a tree at every edge square on our grid of 16x16 tiles
-            for (var x = 0; x < Game.map_grid.width; x++) {
-            	for (var y = 0; y < Game.map_grid.height; y++) {
-        			switch (message.scene[x][y]) {
-        			 	case 0: // Tree
-                            //Crafty.e('Tree').at(x, y);
-                            break; 
-                        case 1: // Tree
-                            //Crafty.e('Tree').at(x, y);
-                            break;
-                        case 2: 
-                            Crafty.e('Bush').at(x, y);
-                            break;
-                        case 3: 
-                            Crafty.e('Rock').at(x, y);
-                            break;
-                        case 4: 
-                            Crafty.e('Village').at(x, y);
-                            break;
-                        default: 
-        			}
-        		}
-        	}
+            });		
 			
 			this.player.x=0;
 			this.player.y=0;
+			
+			this.player1.x=5;
+			this.player1.y=5;
 			
 
 	
