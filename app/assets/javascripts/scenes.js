@@ -4,6 +4,8 @@
 
 $(function() {
   WSocket = new WebSocket($("body").data("ws-url"));
+  
+     
   return WSocket.onmessage = function(event) {
     var message;
     message = JSON.parse(event.data);
@@ -158,7 +160,7 @@ Crafty.scene('SceneTransition', function(){
 });
 
 
-		// Subscribe to scene
+      	// Subscribe to scene
 		subscribe = {type: "subscribe"};
         WSocket.send(JSON.stringify(subscribe));		
             
@@ -184,6 +186,11 @@ Crafty.scene('Loading', function(){
 	Crafty.load([
 		'assets/images/16x16_forest_2.gif',
 		'assets/images/hunter.png',
+		'assets/images/hunter1.png',
+		'assets/images/hunter2.png',
+		'assets/images/hunter3.png',
+		'assets/images/hunter4.png',
+		'assets/images/hunter5.png',
 		'assets/images/door_knock_3x.mp3',
 		'assets/images/door_knock_3x.ogg',
 		'assets/images/door_knock_3x.aac',
@@ -213,7 +220,27 @@ Crafty.scene('Loading', function(){
 		Crafty.sprite(16, 'assets/images/hunter.png', {
 			spr_player:  [0, 2]
 		}, 0, 2);
+		
+	    Crafty.sprite(16, 'assets/images/hunter1.png', {
+			spr_player1:  [0, 2]
+		}, 0, 2);
 
+		Crafty.sprite(16, 'assets/images/hunter2.png', {
+			spr_player2:  [0, 2]
+		}, 0, 2);
+		
+		Crafty.sprite(16, 'assets/images/hunter3.png', {
+			spr_player3:  [0, 2]
+		}, 0, 2);
+			    
+		Crafty.sprite(16, 'assets/images/hunter4.png', {
+			spr_player4:  [0, 2]
+		}, 0, 2);
+		
+		Crafty.sprite(16, 'assets/images/hunter5.png', {
+			spr_player5:  [0, 2]
+		}, 0, 2);
+		
 		// Define our sounds for later use
 		Crafty.audio.add({
 			knock: 	  ['assets/door_knock_3x.mp3', 'assets/door_knock_3x.ogg', 'assets/door_knock_3x.aac'],
