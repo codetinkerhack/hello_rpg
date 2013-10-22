@@ -17,12 +17,9 @@ import play.api.libs.json.JsValue
 import utils.Utils
 import play.api.Play
 
-
 case class Scene(name: String, sceneTiles: List[List[Int]], sceneTransitions: List[String])
 
 //class World(scenes: List[Scene])
-
-
 
 case class LoadScene(sceneActorName: String, scene: Scene)
 
@@ -48,10 +45,6 @@ case class MoveFromSceneToScene(id: String, name: String, fromScene: String, tra
 
 case class ShutDown()
 
-
-
-
-
 /**
  * SceneActor(s) comprise the World.
  * The SceneActor maintains a list of users subscribed to a Scene events.
@@ -66,20 +59,20 @@ class SceneActor(sceneActorName: String, scene: Scene) extends Actor {
       //val newPrice = stockQuote.newPrice(stockHistory.last.doubleValue())
       //stockHistory = stockHistory.drop(1) :+ newPrice
       // notify watchers
-      WorldActor.logger.info("SceneActor.UserMove: id: "+ id +" name: " + name + " x: " + x + " y: " + y)
+      WorldActor.logger.info("SceneActor.UserMove: id: " + id + " name: " + name + " x: " + x + " y: " + y)
       users.foreach(_ ! UserMove(id, name, x, y))
     case Subscribe() =>
+      WorldActor.logger.info("SceneActor.Subscribe: " + sceneActorName)
       // send the scene to the user
       sender ! LoadScene(sceneActorName, scene)
       // add the watcher to the list
       users = users + sender
-    case UnSubscribe() =>
+    case UnSubscribe() => {
+      WorldActor.logger.info("SceneActor.UnSubscribe: " + sceneActorName)
       users = users - sender
-
+    }
   }
 }
-
-
 
 class WorldActor extends Actor {
 
@@ -90,7 +83,6 @@ class WorldActor extends Actor {
   // default scene
   val defaultSceneActor = context.child(WorldActor.defaultScene).get
 
-  
   def receive = {
     case LoadWorld() => {
 
@@ -107,25 +99,21 @@ class WorldActor extends Actor {
         defaultSceneActor
       } forward UnSubscribe()
     }
-    
+
     case SubscribeScene(scene) => {
       context.child(scene).getOrElse {
-    	defaultSceneActor
+        defaultSceneActor
       } forward Subscribe()
-      
+
     }
 
-  
     case MoveFromSceneToScene(id, user, sf, sceneTo) => {
-      
-      self ! UnSubscribeScene(sf);
 
       WorldActor.logger.info("MoveFromSceneToScene: User: " + user + " scene from:  " + sf + "to: " + sceneTo)
-      
-      
+
       // get or pass default scene which is
       val scene = world.get(sf).get
-      
+
       context.child(scene.sceneTransitions(sceneTo)).getOrElse {
         defaultSceneActor
       } forward Subscribe()
@@ -139,61 +127,65 @@ object WorldActor {
   val defaultScene = "scene.json"
   lazy val worldActor: ActorRef = Akka.system.actorOf(Props(classOf[WorldActor]))
 
-
-
-   
 }
 
 class UserActor(out: PushEnumerator[String], id: String, name: String) extends Actor {
 
-  var currentSceneActorName:String=_
-    
+  var currentSceneActorName: String = WorldActor.defaultScene
+
   def receive = {
 
     // Selector
     case UserMessage(message) => {
-    	WorldActor.logger.info("UserMessage: "+message.toString())
-    	if((message \ "type").as[String] == "userMove") { self ! SendUserMove(id, name, (message \ "x").as[Int], (message \ "y").as[Int]) }
-    	if((message \ "type").as[String] == "subscribe") { self ! Subscribe() }
+      WorldActor.logger.info("UserMessage: " + message.toString())
+      if ((message \ "type").as[String] == "userMove") { self ! SendUserMove(id, name, (message \ "x").as[Int], (message \ "y").as[Int]) }
+      if ((message \ "type").as[String] == "subscribe") { self ! Subscribe() }
     }
-    
+
     case SendUserMove(id, name, x, y) => {
-      if(y >= 0 && y <= 255 &&  x >= 0 && x <= 384) {
-    	  WorldActor.logger.info("SendUserMove: sceneActor: " + currentSceneActorName + " id: " +id +" name: " + name + " x: " + x + " y: " + y)  
-    	  
-    	  	
-    	  WorldActor.worldActor ! UserMoveScene(currentSceneActorName, id, name, x, y)
+      if (y >= 0 && y <= 255 && x >= 0 && x <= 384) {
+        WorldActor.logger.info("SendUserMove: sceneActor: " + currentSceneActorName + " id: " + id + " name: " + name + " x: " + x + " y: " + y)
+
+        WorldActor.worldActor ! UserMoveScene(currentSceneActorName, id, name, x, y)
       } else if (y > 255) {
-          WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 1)
+
+        WorldActor.worldActor ! UnSubscribeScene(currentSceneActorName)
+        WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 1)
       } else if (y < 0) {
-          WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 0)
+        
+        WorldActor.worldActor ! UnSubscribeScene(currentSceneActorName)
+        WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 0)
       } else if (x > 384) {
-          WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 3)
+        
+        WorldActor.worldActor ! UnSubscribeScene(currentSceneActorName)
+        WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 3)
       } else if (x < 0) {
-          WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 2)
+        
+        WorldActor.worldActor ! UnSubscribeScene(currentSceneActorName)
+        WorldActor.worldActor ! MoveFromSceneToScene(id, name, currentSceneActorName, 2)
       }
     }
 
     case UserMove(id, name, x, y) => {
-      if(this.id != id) {
-    	val userMoveMessage: ObjectNode = Json.newObject();
-      	userMoveMessage.put("type", "userMove");
-      	userMoveMessage.put("id", id);
-      	userMoveMessage.put("name", name);
-      	userMoveMessage.put("x", x);
-      	userMoveMessage.put("y", y);
-      	out.push(userMoveMessage.toString());
+      if (this.id != id) {
+        val userMoveMessage: ObjectNode = Json.newObject();
+        userMoveMessage.put("type", "userMove");
+        userMoveMessage.put("id", id);
+        userMoveMessage.put("name", name);
+        userMoveMessage.put("x", x);
+        userMoveMessage.put("y", y);
+        out.push(userMoveMessage.toString());
       }
     }
 
     case Subscribe() => {
-      WorldActor.worldActor ! SubscribeScene(WorldActor.defaultScene)
+      WorldActor.worldActor ! SubscribeScene(currentSceneActorName)
     }
 
     case LoadScene(sceneActorName, scene) =>
       {
-    	this.currentSceneActorName = sceneActorName
-    	
+        this.currentSceneActorName = sceneActorName
+
         val sceneLoadMessage: ObjectNode = Json.newObject();
         sceneLoadMessage.put("type", "loadScene");
 

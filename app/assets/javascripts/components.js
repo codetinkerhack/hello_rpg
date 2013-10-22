@@ -40,7 +40,7 @@ Crafty.c('Tree', {
 // A Bush is just an Actor with a certain sprite
 Crafty.c('Bush', {
 	init: function() {
-		this.requires('Actor, Solid, spr_bush');
+		this.requires('Actor, spr_bush');
 	}
 });
 
@@ -48,6 +48,13 @@ Crafty.c('Bush', {
 Crafty.c('Rock', {
 	init: function() {
     this.requires('Actor, Solid, spr_rock');
+	}
+});
+
+// A Rock is just an Actor with a certain sprite
+Crafty.c('Water', {
+	init: function() {
+    this.requires('Actor, Solid, spr_water');
 	}
 });
 
@@ -171,7 +178,7 @@ Crafty.c('PlayerCharacter1', {
 // A village is a tile on the grid that the PC must visit in order to win the game
 Crafty.c('Village', {
 	init: function() {
-		this.requires('Actor, spr_village');
+		this.requires('Actor, spr_treasure');
 	},
 
 	// Process a visitation with this village

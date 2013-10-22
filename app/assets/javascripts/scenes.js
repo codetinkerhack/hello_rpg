@@ -13,6 +13,7 @@ $(function() {
 		Crafty.trigger("ClearScene",message);
         return Crafty.trigger("LoadScene",message);
       case "userMove":
+      	console.log(message);
 		return Crafty.trigger("UserMove", message);       
       default:
         return console.log(message);
@@ -98,6 +99,9 @@ Crafty.scene('SceneTransition', function(){
                         case 5: 
                             Crafty.e('Village').at(x, y);
                             break;
+                        case 6: 
+                            Crafty.e('Water').at(x, y);
+                            break;
                         default: 
         			}
         		}
@@ -149,8 +153,8 @@ Crafty.scene('SceneTransition', function(){
 			this.player.x=0;
 			this.player.y=0;
 			
-			this.player1.x=5;
-			this.player1.y=5;
+			// this.player1.x=-5;
+			// this.player1.y=-5;
 			
 
 	
@@ -158,9 +162,7 @@ Crafty.scene('SceneTransition', function(){
 });
 
 
-		// Subscribe to scene
-		subscribe = {type: "subscribe"};
-        WSocket.send(JSON.stringify(subscribe));		
+
             
     });
     
@@ -184,6 +186,8 @@ Crafty.scene('Loading', function(){
 	Crafty.load([
 		'assets/images/16x16_forest_2.gif',
 		'assets/images/hunter.png',
+		'assets/images/treasure.png',
+		'assets/images/water.gif',
 		'assets/images/door_knock_3x.mp3',
 		'assets/images/door_knock_3x.ogg',
 		'assets/images/door_knock_3x.aac',
@@ -204,9 +208,17 @@ Crafty.scene('Loading', function(){
 		Crafty.sprite(16, 'assets/images/16x16_forest_2.gif', {
 			spr_tree:    [0, 0],
 			spr_bush:    [1, 0],
-			spr_village: [0, 1],
 			spr_rock:    [1, 1]
 		});
+		
+		Crafty.sprite(16, 'assets/images/water.gif', {
+			spr_water:    [0, 0]
+		});
+
+		Crafty.sprite(16, 'assets/images/treasure.png', {
+			spr_treasure:    [0, 0]
+		});
+
 
 		// Define the PC's sprite to be the first sprite in the third row of the
 		//  animation sprite map
@@ -224,5 +236,9 @@ Crafty.scene('Loading', function(){
 		
 		// Now that our sprites are ready to draw, start the game
 		Crafty.scene('SceneTransition');
+		
+		// Subscribe to scene
+		subscribe = {type: "subscribe"};
+        WSocket.send(JSON.stringify(subscribe));	
 	})
 });
