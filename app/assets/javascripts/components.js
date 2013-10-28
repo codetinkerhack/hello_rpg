@@ -61,7 +61,7 @@ Crafty.c('Water', {
 // This is the player-controlled character
 Crafty.c('PlayerCharacter', {
 	init: function() {
-		this.requires('Actor, Fourway, Collision, spr_player, SpriteAnimation')
+		this.requires('Actor, Fourway, Collision, spr_player1, SpriteAnimation')
 			.fourway(2)
 			.stopOnSolids()
 			.onHit('Village', this.visitVillage)
@@ -119,7 +119,7 @@ Crafty.c('PlayerCharacter', {
 
 Crafty.c('PlayerCharacter1', {
 	init: function() {
-		this.requires('Actor, Collision, spr_player, SpriteAnimation')
+		this.requires('Actor, Collision, spr_player3, SpriteAnimation')
 			.stopOnSolids()
 			.onHit('Village', this.visitVillage)
 			// These next lines define our four animations

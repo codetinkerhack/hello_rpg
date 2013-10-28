@@ -161,21 +161,10 @@ Crafty.scene('SceneTransition', function(){
 
 	
         
+	});
+
+
 });
-
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
-=======
->>>>>>> dc3e7478630d27f9d621cd135a18228a1d203933
-      	// Subscribe to scene
-		subscribe = {type: "subscribe"};
-        WSocket.send(JSON.stringify(subscribe));		
->>>>>>> dc3e7478630d27f9d621cd135a18228a1d203933
-            
-    });
     
     
 
@@ -197,22 +186,13 @@ Crafty.scene('Loading', function(){
 	Crafty.load([
 		'assets/images/16x16_forest_2.gif',
 		'assets/images/hunter.png',
-<<<<<<< HEAD
-<<<<<<< HEAD
 		'assets/images/treasure.png',
 		'assets/images/water.gif',
-=======
-=======
->>>>>>> dc3e7478630d27f9d621cd135a18228a1d203933
 		'assets/images/hunter1.png',
 		'assets/images/hunter2.png',
 		'assets/images/hunter3.png',
 		'assets/images/hunter4.png',
 		'assets/images/hunter5.png',
-<<<<<<< HEAD
->>>>>>> dc3e7478630d27f9d621cd135a18228a1d203933
-=======
->>>>>>> dc3e7478630d27f9d621cd135a18228a1d203933
 		'assets/images/door_knock_3x.mp3',
 		'assets/images/door_knock_3x.ogg',
 		'assets/images/door_knock_3x.aac',
