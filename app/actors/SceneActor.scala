@@ -16,6 +16,7 @@ import play.api.libs.iteratee.PushEnumerator
 import play.api.libs.json.JsValue
 import utils.Utils
 import play.api.Play
+import appglobal._
 
 case class Scene(name: String, sceneTiles: List[List[Int]], sceneTransitions: List[String])
 
@@ -75,8 +76,8 @@ class SceneActor(sceneActorName: String, scene: Scene) extends Actor {
 }
 
 class WorldActor extends Actor {
-
-  val world: Map[String, Scene] = Utils.loadWorld("C:/Users/evgeniyshatokhin/Desktop/GitHub/hello_rpg/app")
+ 
+  val world: Map[String, Scene] = Utils.loadWorld(WorldActor.applicationPath)
 
   world.foreach(scene => context.actorOf(Props(new SceneActor(scene._1, scene._2)), scene._1))
 
@@ -122,10 +123,14 @@ class WorldActor extends Actor {
 }
 
 object WorldActor {
-
+  val  applicationPath = Global.applicationPath
+ 
+    
   val logger = LoggerFactory.getLogger("actors.WorldActor");
   val defaultScene = "scene.json"
   lazy val worldActor: ActorRef = Akka.system.actorOf(Props(classOf[WorldActor]))
+  
+  logger.info("World Actor started...")
 
 }
 

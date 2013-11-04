@@ -5,22 +5,36 @@
 $(function() {
   WSocket = new WebSocket($("body").data("ws-url"));
   
-     
-  return WSocket.onmessage = function(event) {
+        
+  WSocket.onmessage = function(event) {
     var message;
     message = JSON.parse(event.data);
     switch (message.type) {
       case "loadScene":
-        console.log(message);
+       // console.log(message);
 		Crafty.trigger("ClearScene",message);
         return Crafty.trigger("LoadScene",message);
       case "userMove":
-      	console.log(message);
-		return Crafty.trigger("UserMove", message);       
+      //	console.log(message);
+		return Crafty.trigger("UserMove", message);
+      case "userSubscribe":
+          console.log(message);
+		return Crafty.trigger("UserSubscribe", message);   
       default:
         return console.log(message);
     }
   };
+  
+    Game.start();
+    
+    Crafty.scene('Loading'); 
+    setTimeout(function(){ // Subscribe to scene
+    subscribe = {type: "subscribe"};
+    WSocket.send(JSON.stringify(subscribe));
+    }, 2000);
+
+    
+       
 });
 
 
@@ -158,10 +172,13 @@ Crafty.scene('SceneTransition', function(){
 			// this.player1.x=-5;
 			// this.player1.y=-5;
 			
-
-	
+        
+	    Crafty.viewport.follow(this.player, 0, 0);
         
 	});
+    
+       Crafty.viewport.init(200,200);
+                                          
 
 
 });
@@ -262,8 +279,9 @@ Crafty.scene('Loading', function(){
 		// Now that our sprites are ready to draw, start the game
 		Crafty.scene('SceneTransition');
 		
-		// Subscribe to scene
-		subscribe = {type: "subscribe"};
-        WSocket.send(JSON.stringify(subscribe));	
+	   
 	})
 });
+
+
+      
